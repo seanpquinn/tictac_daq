@@ -13,8 +13,30 @@ In this version, only Python built-in modules are used.
 # 2. INPUT DATA
 
 A USB-serial adapter is used to receive data from slimtim. The OS presents this
-as a file object in ```/dev/```, usually in the order the adapters were
+as a symbolic link in ```/dev/```, usually in the order the adapters were
 conneccted, such as ```/dev/ttyUSB0```.
+
+## 2.1 Serial console settings (IMPORTANT!)
+
+Since slimtim is sending at 9600 and has some other quirks it is crucial
+the symbolic link be configured correctly! Generally the default bitrate is
+9600, however, we also want to ignore carriage returns. Use the program
+```stty``` to do this. It can be invoked as ```stty -F /dev/ttyUSB0 [options]```
+The following tty settings have been used on testing machines in the
+lab with success
+
+```
+speed 9600 baud; rows 0; columns 0; line = 0;
+intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = <undef>;
+eol2 = <undef>; swtch = <undef>; start = ^Q; stop = ^S; susp = ^Z; rprnt = ^R;
+werase = ^W; lnext = ^V; flush = ^O; min = 1; time = 0;
+-parenb -parodd -cmspar cs8 hupcl -cstopb cread clocal -crtscts
+-ignbrk -brkint -ignpar -parmrk -inpck -istrip -inlcr igncr -icrnl ixon -ixoff
+-iuclc -ixany -imaxbel -iutf8
+opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0
+isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt
+echoctl echoke
+```
 
 In testing (on Ubuntu system) I've found that the driver (Prolific)/OS 
 interprets the endl character in each message as \n\n. Python's
