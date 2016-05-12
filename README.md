@@ -66,3 +66,4 @@ to Ricardo's SU emulator program to issue a T3 to the south station.
 
 # 7 CHANGELOG
  - May 8 2016: Initial program uploaded. Basic functionality.
+ - May 12 2016: tty config
