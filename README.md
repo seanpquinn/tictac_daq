@@ -38,11 +38,7 @@ isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt
 echoctl echoke
 ```
 
-In testing (on Ubuntu system) I've found that the driver (Prolific)/OS 
-interprets the endl character in each message as \n\n. Python's
-```readline''' function parses these as separate strings. A hack is used to
-deal with this behavior: only strings larger than  1 byte are analyzed by the
-code.
+Aside from enabling ignore carriage returns, these are mostly defaults.
 
 # 3. INSTALLATION
 
