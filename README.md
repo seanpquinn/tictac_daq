@@ -56,7 +56,7 @@ Two files are generated and updated as long as the program runs. The first is
 ```tic_tac_events.txt``` which is a verbatim copy of all serial messages
 received from TICTaC apparatus at the SBC.
 
-The second, ```tic_tac.log''' lists the GPS timestamp in GPS_SEC.microsecond
+The second, ```tic_tac.log``` lists the GPS timestamp in GPS_SEC.microsecond
 format for all 4 fold coincidence events. These events will be forwared
 to Ricardo's SU emulator program to issue a T3 to the south station.
 
