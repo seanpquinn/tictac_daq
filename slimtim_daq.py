@@ -13,7 +13,10 @@ def utcFromString(x):
 
 secsInWeek = 604800 
 secsInDay = 86400 
-gpsEpoch = (1980, 1, 6, 0, 0, 0)  # (year, month, day, hh, mm, ss) 
+gpsEpoch = (1980, 1, 6, 0, 0, 0)  # (year, month, day, hh, mm, ss)
+
+logfile = 'tic_tac_mutel.log'
+eventfile = 'tic_tac_events_mutel.txt'
 
 def gpsFromUTC(year, month, day, hour, minute, sec, leapSecs=17): 
   """converts UTC to GPS second
@@ -54,15 +57,17 @@ def gpsFromUTC(year, month, day, hour, minute, sec, leapSecs=17):
   gps_tuple = (gpsWeek, gpsSOW, gpsDay, gpsSOD)
   return int(gps_tuple[0] * secsInWeek + gps_tuple[1])
 
-N = 2**32
+N = 749995494 # Precision oscillator frequency
 
 def computeMicro(n1,n2):
   if n2>n1:
     micsec = float(n2-n1) / N
-    return str(round(micsec,6))[2:]
+    micsec_str = "%.6f" %micsec
+    return micsec_str.split('.')[1]
   else:
     micsec = float(N-n1+n2) / N
-    return str(round(micsec,6))[2:]
+    micsec_str = "%.6f" %micsec
+    return micsec_str.split('.')[1]
 
 def sendT3(buf):
   N2 = buf.pop() #Last entry is TESTevent counter value (string)
@@ -75,7 +80,8 @@ def sendT3(buf):
     gps_sec = gpsFromUTC(*utc_list) #Find GPS second from list
     gps_sec += 1 #Since this PPS is for next timestamp
     Tmicro = computeMicro(N1,N2)
-    with open('tic_tac.log','a',1) as F:
+#    print "%i.%s"%(gps_sec,Tmicro)
+    with open(logfile,'a',1) as F:
       F.write('%i.%s\n' %(gps_sec,Tmicro))
     return None
   else:
@@ -84,14 +90,14 @@ def sendT3(buf):
     N1 = buf.pop()
     N1 = int(N1.split(' ')[-1])
     Tmicro = computeMicro(N1,N2)
-    with open('tic_tac.log','a',1) as F:
+#    print "%i.%s"%(gps_sec,Tmicro)
+    with open(logfile,'a',1) as F:
       F.write('%i.%s\n' %(gps_sec,Tmicro))
-      F.flush()
     return None
 
 #Serial port on machine
-#dev_id = '/dev/ttyUSB0'
-dev_id = 'data_out.txt'
+dev_id = '/dev/ttyUSB0'
+#dev_id = 'data_out.txt'
 
 auger_south = ''
 
@@ -100,16 +106,22 @@ databuf = collections.deque([],3)
 
 #Read serial, write time stamps to file
 bufsize=1*10**3
-with open(dev_id,'U') as f, open('tic_tac_events.txt','a',0) as ff:
+with open(dev_id,'r') as f, open(eventfile,'a',-1) as ff:
   #Main loop
-  #Only works if OS uses 9600 bit rate by default for serial device
+  #Configure serial port terminal appropriately. See README
   while True:
     data = f.readline() #Blocking read
-    if len(data) > 1:
-      ff.write(data)
+#    print "%r" %data #Debugging
+    ff.write(data)
+    if len(data) > 18: #This prevents parsing of 'unhealthy messages'
       databuf.append(data)
-      if "TEST" in data:
-        sendT3(databuf)
+       #Buffer should be fully populated
+      if len(databuf)>2:
+        #Buffer should be filled with parseable elements only
+        if "GPS" in databuf and "2016" in databuf and "TEST" in databuf:
+          sendT3(databuf)
+        else:
+          continue
       else:
         continue
     else:
