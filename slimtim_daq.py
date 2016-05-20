@@ -118,7 +118,10 @@ with open(dev_id,'r') as f, open(eventfile,'a',-1) as ff:
        #Buffer should be fully populated
       if len(databuf)>2:
         #Buffer should be filled with parseable elements only
-        if "GPS" in databuf and "2016" in databuf and "TEST" in databuf:
+        blob = ''
+        for i in databuf:
+          blob = blob + i
+        if "GPS" in blob and "2016" in blob and "TEST" in blob:
           sendT3(databuf)
         else:
           continue
