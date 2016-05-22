@@ -71,7 +71,7 @@ def computeMicro(n1,n2):
 
 def sendT3(buf):
   x3 = buf.pop() #Last entry is TESTevent counter value (string)
-  x3 = int(N2.split(' ')[-1]) #Format to int
+  x3 = int(x3.split(' ')[-1]) #Format to int
   x2 = buf.pop() #Next entry unknown: could be GPS counter, or UTC time string
   if "GPS" in x2:
     x2 = int(x2.split(' ')[-1]) #This entry will be GPS 1 PPS count
