@@ -70,30 +70,24 @@ def computeMicro(n1,n2):
     return micsec_str.split('.')[1]
 
 def sendT3(buf):
-  N2 = buf.pop() #Last entry is TESTevent counter value (string)
-  N2 = int(N2.split(' ')[-1]) #Format to int
-  next = buf.pop() #Next entry unknown: could be GPS counter, or UTC timestamp
-  if "GPS" in next:
-    N1 = next #This entry will be GPS 1 PPS count
-    N1 = int(N1.split(' ')[-1])
+  x3 = buf.pop() #Last entry is TESTevent counter value (string)
+  x3 = int(N2.split(' ')[-1]) #Format to int
+  x2 = buf.pop() #Next entry unknown: could be GPS counter, or UTC time string
+  if "GPS" in x2:
+    x2 = int(x2.split(' ')[-1]) #This entry will be GPS 1 PPS count
     utc_list = utcFromString(buf.pop()) #Format string as ymdhmmss list
     gps_sec = gpsFromUTC(*utc_list) #Find GPS second from list
-    gps_sec += 1 #Since this PPS is for next timestamp
-    Tmicro = computeMicro(N1,N2)
-#    print "%i.%s"%(gps_sec,Tmicro)
-    with open(logfile,'a',1) as F:
-      F.write('%i.%s\n' %(gps_sec,Tmicro))
-    return None
+    gps_sec += 1 #Since this PPS is for next time string
+    Tmicro = computeMicro(x3,x2)
   else:
-    utc_list = utcFromString(next)
+    utc_list = utcFromString(x2)
     gps_sec = gpsFromUTC(*utc_list)
-    N1 = buf.pop()
-    N1 = int(N1.split(' ')[-1])
-    Tmicro = computeMicro(N1,N2)
-#    print "%i.%s"%(gps_sec,Tmicro)
-    with open(logfile,'a',1) as F:
-      F.write('%i.%s\n' %(gps_sec,Tmicro))
-    return None
+    x1 = buf.pop()
+    x1 = int(x1.split(' ')[-1])
+    Tmicro = computeMicro(x1,x3)
+  with open(logfile,'a',1) as F:
+    F.write('%i.%s\n' %(gps_sec,Tmicro))
+  return None
 
 #Serial port on machine
 dev_id = '/dev/ttyUSB0'
@@ -116,12 +110,11 @@ with open(dev_id,'r') as f, open(eventfile,'a',-1) as ff:
     if len(data) > 18: #This prevents parsing of 'unhealthy messages'
       databuf.append(data)
        #Buffer should be fully populated
-      if len(databuf)>2:
+      if len(databuf) > 2:
         #Buffer should be filled with parseable elements only
-        blob = ''
-        for i in databuf:
-          blob = blob + i
-        if "GPS" in blob and "2016" in blob and "TEST" in blob:
+        a = databuf[2]
+        b = databuf[1]
+        if "TEST" in a and "GPS" in b or "TEST" in a and "2016" in b:
           sendT3(databuf)
         else:
           continue
