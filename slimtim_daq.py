@@ -113,8 +113,11 @@ with open(dev_id,'r') as f, open(eventfile,'a',-1) as ff:
       if len(databuf) > 2:
         #Buffer should be filled with parseable elements only
         a = databuf[2]
-        b = databuf[1]
-        if "TEST" in a and "GPS" in b or "TEST" in a and "2016" in b:
+        b = databuf[1]+databuf[0]
+        c = 'GPS' in b
+        d = '2016' in b
+        dd = c + d
+        if "TEST" in a and dd == 2:
           sendT3(databuf)
         else:
           continue
